@@ -7,7 +7,7 @@ import (
 )
 
 func (c *Client) GetAccessTokenMonitor(ctx context.Context) (string, error) {
-	if c.config.RedisClient.Db == nil {
+	if c.redisClient.Db == nil {
 		return "", errors.New("驱动没有初始化")
 	}
 	result := c.GetCallBackIp(ctx)
@@ -15,6 +15,6 @@ func (c *Client) GetAccessTokenMonitor(ctx context.Context) (string, error) {
 		return c.config.AccessToken, nil
 	}
 	token := c.CgiBinToken(ctx)
-	c.config.RedisClient.Db.Set(context.Background(), c.getAccessTokenCacheKeyName(), token.Result.AccessToken, time.Second*7000)
+	c.redisClient.Set(ctx, c.getAccessTokenCacheKeyName(), token.Result.AccessToken, time.Second*7000)
 	return token.Result.AccessToken, nil
 }

@@ -8,7 +8,7 @@ import (
 
 // GetJsapiTicketMonitor 监控api_ticket
 func (c *Client) GetJsapiTicketMonitor(ctx context.Context) (string, error) {
-	if c.config.RedisClient.Db == nil {
+	if c.redisClient.Db == nil {
 		return "", errors.New("驱动没有初始化")
 	}
 	result := c.DebugCgiBinTicketCheck(ctx)
@@ -17,6 +17,6 @@ func (c *Client) GetJsapiTicketMonitor(ctx context.Context) (string, error) {
 	}
 	c.config.AccessToken = c.GetAccessToken(ctx)
 	token := c.CgiBinTicketGetTicket(ctx, "jsapi")
-	c.config.RedisClient.Db.Set(context.Background(), c.getJsapiTicketCacheKeyName(), token.Result.Ticket, time.Second*7000)
+	c.redisClient.Set(ctx, c.getJsapiTicketCacheKeyName(), token.Result.Ticket, time.Second*7000)
 	return token.Result.Ticket, nil
 }
