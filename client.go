@@ -6,52 +6,94 @@ import (
 	"go.dtapp.net/gorequest"
 )
 
-type ConfigClient struct {
-	AppId       string            // 小程序唯一凭证，即 appId
-	AppSecret   string            // 小程序唯一凭证密钥，即 appSecret
-	AccessToken string            // 接口调用凭证
-	JsapiTicket string            // 签名凭证
-	RedisClient *dorm.RedisClient // 缓存数据库
-	GormClient  *dorm.GormClient  // 日志数据库
-	LogClient   *golog.ZapLog     // 日志驱动
-	LogDebug    bool              // 日志开关
+// client *dorm.GormClient
+type gormClientFun func() *dorm.GormClient
+
+// client *dorm.MongoClient
+// databaseName string
+type mongoClientFun func() (*dorm.MongoClient, string)
+
+// 缓存前缀
+// wechat_office:wechat_access_token:
+// wechat_office:wechat_jsapi_ticket:
+type redisCachePrefixFun func() (wechatAccessToken, wechatJsapiTicket string)
+
+// ClientConfig 实例配置
+type ClientConfig struct {
+	AppId               string              // 小程序唯一凭证，即 appId
+	AppSecret           string              // 小程序唯一凭证密钥，即 appSecret
+	RedisClient         *dorm.RedisClient   // 缓存数据库
+	GormClientFun       gormClientFun       // 日志配置
+	MongoClientFun      mongoClientFun      // 日志配置
+	Debug               bool                // 日志开关
+	RedisCachePrefixFun redisCachePrefixFun // 缓存前缀
 }
 
-// Client 微信公众号服务
+// Client 实例
 type Client struct {
-	requestClient *gorequest.App    // 请求服务
-	logClient     *golog.ApiClient  // 日志服务
-	redisClient   *dorm.RedisClient // 缓存服务
-	config        *ConfigClient     // 配置
+	requestClient *gorequest.App // 请求服务
+	config        struct {
+		appId       string // 小程序唯一凭证，即 appId
+		appSecret   string // 小程序唯一凭证密钥，即 appSecret
+		accessToken string // 接口调用凭证
+		jsapiTicket string // 签名凭证
+	}
+	cache struct {
+		redisClient             *dorm.RedisClient // 缓存数据库
+		wechatAccessTokenPrefix string            // AccessToken
+		wechatJsapiTicketPrefix string            // JsapiTicket
+	}
+	log struct {
+		gorm           bool              // 日志开关
+		gormClient     *dorm.GormClient  // 日志数据库
+		logGormClient  *golog.ApiClient  // 日志服务
+		mongo          bool              // 日志开关
+		mongoClient    *dorm.MongoClient // 日志数据库
+		logMongoClient *golog.ApiClient  // 日志服务
+	}
 }
 
-func NewClient(config *ConfigClient) (*Client, error) {
+// NewClient 创建实例化
+func NewClient(config *ClientConfig) (*Client, error) {
 
 	var err error
-	c := &Client{config: config}
+	c := &Client{}
+
+	c.config.appId = config.AppId
+	c.config.appSecret = config.AppSecret
 
 	c.requestClient = gorequest.NewHttp()
 
-	if c.config.GormClient.Db != nil {
-		c.logClient, err = golog.NewApiClient(&golog.ApiClientConfig{
-			GormClient: c.config.GormClient,
-			TableName:  logTable,
-			LogClient:  c.config.LogClient,
-			LogDebug:   c.config.LogDebug,
-		})
+	gormClient := config.GormClientFun()
+	if gormClient != nil && gormClient.Db != nil {
+		c.log.logGormClient, err = golog.NewApiGormClient(func() (*dorm.GormClient, string) {
+			return gormClient, logTable
+		}, config.Debug)
 		if err != nil {
 			return nil, err
 		}
+		c.log.gorm = true
+		c.log.gormClient = gormClient
 	}
 
-	c.redisClient = c.config.RedisClient
+	mongoClient, databaseName := config.MongoClientFun()
+	if mongoClient != nil && mongoClient.Db != nil {
+		c.log.logMongoClient, err = golog.NewApiMongoClient(func() (*dorm.MongoClient, string, string) {
+			return mongoClient, databaseName, logTable
+		}, config.Debug)
+		if err != nil {
+			return nil, err
+		}
+		c.log.mongo = true
+		c.log.mongoClient = mongoClient
+	}
+
+	c.cache.redisClient = config.RedisClient
+
+	c.cache.wechatAccessTokenPrefix, c.cache.wechatJsapiTicketPrefix = config.RedisCachePrefixFun()
+	if c.cache.wechatAccessTokenPrefix == "" || c.cache.wechatJsapiTicketPrefix == "" {
+		return nil, redisCachePrefixNoConfig
+	}
 
 	return c, nil
-}
-
-// ConfigApp 配置
-func (c *Client) ConfigApp(appId, appSecret string) *Client {
-	c.config.AppId = appId
-	c.config.AppSecret = appSecret
-	return c
 }

@@ -2,16 +2,15 @@ package wechatoffice
 
 import (
 	"context"
-	"fmt"
 	"time"
 )
 
 // GetJsapiTicket 获取api_ticket
 func (c *Client) GetJsapiTicket(ctx context.Context) string {
-	if c.redisClient.Db == nil {
-		return c.config.JsapiTicket
+	if c.cache.redisClient.Db == nil {
+		return c.config.jsapiTicket
 	}
-	newCache := c.redisClient.NewSimpleStringCache(c.redisClient.NewStringOperation(), time.Second*7000)
+	newCache := c.cache.redisClient.NewSimpleStringCache(c.cache.redisClient.NewStringOperation(), time.Second*7000)
 	newCache.DBGetter = func() string {
 		token := c.CgiBinTicketGetTicket(ctx, "jsapi")
 		return token.Result.Ticket
@@ -20,5 +19,5 @@ func (c *Client) GetJsapiTicket(ctx context.Context) string {
 }
 
 func (c *Client) getJsapiTicketCacheKeyName() string {
-	return fmt.Sprintf("wechat_jsapi_ticket:%v", c.GetAppId())
+	return c.cache.wechatJsapiTicketPrefix + c.GetAppId()
 }
