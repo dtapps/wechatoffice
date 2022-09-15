@@ -1,6 +1,9 @@
 package wechatoffice
 
-import "context"
+import (
+	"context"
+	"go.dtapp.net/golog"
+)
 
 func (c *Client) GetAppId() string {
 	return c.config.appId
@@ -18,4 +21,12 @@ func (c *Client) getAccessToken(ctx context.Context) string {
 func (c *Client) getJsapiTicket(ctx context.Context) string {
 	c.config.jsapiTicket = c.GetJsapiTicket(ctx)
 	return c.config.jsapiTicket
+}
+
+func (c *Client) GetLogGorm() *golog.ApiClient {
+	return c.log.logGormClient
+}
+
+func (c *Client) GetLogMongo() *golog.ApiClient {
+	return c.log.logMongoClient
 }
