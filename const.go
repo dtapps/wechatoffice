@@ -1,7 +1,10 @@
 package wechatoffice
 
 const (
-	apiUrl   = "https://api.weixin.qq.com"
-	logTable = "wechatoffice"
-	Version  = "1.0.8"
+	apiUrl = "https://api.weixin.qq.com"
+)
+
+const (
+	LogTable = "wechatoffice"
+	Version  = "1.0.9"
 )

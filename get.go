@@ -23,10 +23,6 @@ func (c *Client) getJsapiTicket(ctx context.Context) string {
 	return c.config.jsapiTicket
 }
 
-func (c *Client) GetLogGorm() *golog.ApiClient {
-	return c.log.logGormClient
-}
-
-func (c *Client) GetLogMongo() *golog.ApiClient {
-	return c.log.logMongoClient
+func (c *Client) GetLog() *golog.ApiClient {
+	return c.log.client
 }
