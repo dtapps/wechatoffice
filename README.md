@@ -13,5 +13,5 @@
 #### 安装
 
 ```shell
-go get -v -u go.dtapp.net/wechatoffice
+go get -v -u go.dtapp.net/wechatoffice@v1.0.11
 ```
