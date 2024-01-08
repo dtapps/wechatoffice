@@ -10,10 +10,6 @@ func (c *Client) request(ctx context.Context, url string, param gorequest.Params
 
 	// 创建请求
 	client := gorequest.NewHttp()
-	if !c.requestClientStatus {
-		c.DefaultHttp()
-		client = c.requestClient
-	}
 
 	// 设置请求地址
 	client.SetUri(url)

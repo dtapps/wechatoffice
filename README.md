@@ -1,8 +1,8 @@
 <h1>
-<a href="https://www.dtapp.net/">Golang wechatoffice</a>
+<a href="https://www.dtapp.net/">Golang</a>
 </h1>
 
-📦 Golang wechatoffice
+📦 Golang 微信公众号
 
 [comment]: <> (go)
 [![godoc](https://pkg.go.dev/badge/go.dtapp.net/wechatoffice?status.svg)](https://pkg.go.dev/go.dtapp.net/wechatoffice)
@@ -13,5 +13,5 @@
 #### 安装
 
 ```shell
-go get -v -u go.dtapp.net/wechatoffice@v1.0.11
+go get -v -u go.dtapp.net/wechatoffice@v1.0.12
 ```

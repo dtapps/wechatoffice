@@ -7,15 +7,16 @@ import (
 
 // GetJsapiTicket 获取api_ticket
 func (c *Client) GetJsapiTicket(ctx context.Context) string {
-	if c.cache.redisClient.GetDb() == nil {
+	if c.cache.redisClient == nil {
 		return c.config.jsapiTicket
 	}
-	newCache := c.cache.redisClient.NewSimpleStringCache(c.cache.redisClient.NewStringOperation(), time.Second*7000)
-	newCache.DBGetter = func() string {
-		token, _ := c.CgiBinTicketGetTicket(ctx, "jsapi")
-		return token.Result.Ticket
+	result, _ := c.cache.redisClient.Get(ctx, c.getJsapiTicketCacheKeyName()).Result()
+	if result != "" {
+		return result
 	}
-	return newCache.GetCache(ctx, c.getJsapiTicketCacheKeyName())
+	token, _ := c.CgiBinTicketGetTicket(ctx, "jsapi")
+	c.cache.redisClient.Set(ctx, c.getJsapiTicketCacheKeyName(), token.Result.Ticket, time.Second*7000)
+	return token.Result.Ticket
 }
 
 func (c *Client) getJsapiTicketCacheKeyName() string {

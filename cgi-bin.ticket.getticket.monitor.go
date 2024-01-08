@@ -8,7 +8,7 @@ import (
 
 // GetJsapiTicketMonitor 监控api_ticket
 func (c *Client) GetJsapiTicketMonitor(ctx context.Context) (string, error) {
-	if c.cache.redisClient.GetDb() == nil {
+	if c.cache.redisClient == nil {
 		return "", errors.New("驱动没有初始化")
 	}
 	result, _ := c.DebugCgiBinTicketCheck(ctx)

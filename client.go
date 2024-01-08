@@ -1,7 +1,7 @@
 package wechatoffice
 
 import (
-	"go.dtapp.net/dorm"
+	"github.com/redis/go-redis/v9"
 	"go.dtapp.net/golog"
 )
 
@@ -14,7 +14,7 @@ type redisCachePrefixFun func() (wechatAccessToken, wechatJsapiTicket string)
 type ClientConfig struct {
 	AppId               string              `json:"app_id"` // 小程序唯一凭证，即 appId
 	AppSecret           string              // 小程序唯一凭证密钥，即 appSecret
-	RedisClient         *dorm.RedisClient   // 缓存数据库
+	RedisClient         *redis.Client       // 缓存数据库
 	RedisCachePrefixFun redisCachePrefixFun // 缓存前缀
 }
 
@@ -27,9 +27,9 @@ type Client struct {
 		jsapiTicket string // 签名凭证
 	}
 	cache struct {
-		redisClient             *dorm.RedisClient // 缓存数据库
-		wechatAccessTokenPrefix string            // AccessToken
-		wechatJsapiTicketPrefix string            // JsapiTicket
+		redisClient             *redis.Client // 缓存数据库
+		wechatAccessTokenPrefix string        // AccessToken
+		wechatJsapiTicketPrefix string        // JsapiTicket
 	}
 	gormLog struct {
 		status bool           // 状态
